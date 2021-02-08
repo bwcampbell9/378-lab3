@@ -1,7 +1,7 @@
 var config = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: 1280,
+  height: 720,
   physics: {
       default: 'arcade',
       arcade: {
@@ -70,8 +70,8 @@ function create() {
   
   // player will collide with the level tiles 
   this.physics.add.collider(groundLayer, this.physicsObjects);
-  this.physics.add.collider(this.physicsObjects, this.physicsObjects);
   this.physics.add.collider(groundLayer, this.player);
+  this.physics.add.collider(this.physicsObjects, this.physicsObjects);
   this.physics.add.collider(this.player, this.physicsObjects);
 
 }

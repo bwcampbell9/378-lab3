@@ -1,22 +1,14 @@
-import FirstRoom from "./firstRoom.js"
-import CenterCabin from "./centerCabin.js"
+import TileMapLevel from "./tileMapLoader.js"
 import Phaser from "../lib/phaser.js"
-import Chemicals from "./chemicals.js"
-import GravityRoom from "./gravity.js"
-import SpacesuitRoom from "./spacesuitRoom.js"
-
-console.log('hello')
 
 const config = {
     type: Phaser.AUTO,
-    width: 384,
-    height: 300,
+    width: 1280,
+    height: 720,
     parent: "game-container",
     pixelArt: true,
     backgroundColor: "#1d212d",
-    scene: [FirstRoom, CenterCabin, 
-            Chemicals, GravityRoom, 
-            SpacesuitRoom],
+    scene: TileMapLevel,
     physics: {
       default: "arcade",
       arcade: {

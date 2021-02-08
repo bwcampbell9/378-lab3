@@ -1,4 +1,4 @@
-class PlayerController extends Phaser.Physics.Arcade.Sprite {
+export default class PlayerController extends Phaser.Physics.Arcade.Sprite {
 
     constructor(scene,x,y,texture) {
 		super(scene,x,y,texture);
@@ -9,10 +9,14 @@ class PlayerController extends Phaser.Physics.Arcade.Sprite {
 		this.setBounce(.2);
         this.setCollideWorldBounds(true); // don't go out of the map
 
+        this.pushable = false;
+
+        this.scaleX = .5;
+        this.scaleY = .5;
+
         this.body.setSize(this.width, this.height-8);
 
         this.cursors = scene.input.keyboard.createCursorKeys();
-        console.log(this.cursors);
 
         const { LEFT, RIGHT, UP, DOWN } = Phaser.Input.Keyboard.KeyCodes;
         this.keys = this.scene.input.keyboard.addKeys({
@@ -26,19 +30,25 @@ class PlayerController extends Phaser.Physics.Arcade.Sprite {
 
         scene.anims.create({
             key: 'walk',
-            frames: scene.anims.generateFrameNames('player', {prefix: 'p1_walk', start: 1, end: 11, zeroPad: 2}),
+            frames: scene.anims.generateFrameNames('player_walk', {start: 0, end: 3}),
             frameRate: 10,
             repeat: -1
         });
-        // idle with only one frame, so repeat is not neaded
         scene.anims.create({
             key: 'idle',
-            frames: [{key: 'player', frame: 'p1_stand'}],
-            frameRate: 10,
+            frames: scene.anims.generateFrameNames('player_idle', {start: 0, end: 8}),
+            frameRate: 5,
+            repeat: -1
+        });
+        scene.anims.create({
+            key: 'float',
+            frames: scene.anims.generateFrameNames('player_float', {start: 0, end: 0}),
+            frameRate: 0,
+            repeat: -1
         });
 
         // set bounds so the camera won't go outside the game world
-        scene.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+        scene.cameras.main.setBounds(0, 0, scene.widthInPixels, scene.heightInPixels);
         // make the camera follow the player
         scene.cameras.main.startFollow(this);
       
@@ -46,32 +56,39 @@ class PlayerController extends Phaser.Physics.Arcade.Sprite {
         scene.cameras.main.setBackgroundColor('#ccccff');
 
         this.pickups = {};
-        this.playerReach = 125;
+        this.playerReach = 32;
         this.motionSmoothing = 5;
+        this.jumpHeight = 2;
+        this.moveSpeed = 1;
 	}
 
     preUpdate(time, delta) {
         super.preUpdate(time, delta);
-
+        
+        let anim = 'idle';
         if (this.keys.left.isDown)
         {
-            this.setVelocityX(-200);
-            this.anims.play('walk', true); // walk left
-            this.flipX = true; // flip the sprite to the left
+            this.setVelocityX(-100 * this.moveSpeed);
+            anim = 'walk';
+            this.flipX = false; // flip the sprite to the left
         }
         else if (this.keys.right.isDown)
         {
-            this.body.setVelocityX(200);
-            this.anims.play('walk', true);
-            this.flipX = false; // use the original sprite looking to the right
+            this.body.setVelocityX(100 * this.moveSpeed);
+            anim = 'walk';
+            this.flipX = true; // use the original sprite looking to the right
         } else {
             this.body.setVelocityX(0);
-            this.anims.play('idle', true);
         }
+        if(!(this.body.onFloor() || this.body.touching.down)) {
+            anim = 'float';
+        }
+        this.anims.play(anim, true);
+
         // jump 
         if (this.keys.up.isDown && (this.body.onFloor() || this.body.touching.down))
         {
-            this.body.setVelocityY(-500);        
+            this.body.setVelocityY(-100 * this.jumpHeight);        
         }
 
         if(this.heldObject) {
@@ -82,8 +99,8 @@ class PlayerController extends Phaser.Physics.Arcade.Sprite {
                 this.heldObject.setVelocityY(this.body.velocity.y);
                 this.heldObject = null;
             } else {
-                const holdDistance = this.displayWidth/2 + this.heldObject.displayWidth/2 + 10;
-                const targetX = ((this.x + (holdDistance * (this.flipX ? -1 : 1))) - this.heldObject.x) + this.heldObject.x;
+                const holdDistance = this.displayWidth/2 + this.heldObject.displayWidth/2 + 5;
+                const targetX = ((this.x + (holdDistance * (this.flipX ? 1 : -1))) - this.heldObject.x) + this.heldObject.x;
                 const targetY = (this.y - this.heldObject.y) + this.heldObject.y;
                 this.heldObject.x = (this.heldObject.x * (this.motionSmoothing - 1) + targetX) / this.motionSmoothing;
                 this.heldObject.y = (this.heldObject.y * (this.motionSmoothing - 1) + targetY) / this.motionSmoothing;
@@ -106,7 +123,6 @@ class PlayerController extends Phaser.Physics.Arcade.Sprite {
             if(phys.getType && phys.getType().includes("physics-object") && !this.heldObject) {
                 // pop up little E icon to show that you can interact
                 if(Phaser.Input.Keyboard.JustDown(this.keys.pickup)) {
-                    console.log(phys.getType && phys.getType().includes("physics-object"));
                     this.heldObject = phys;
                     this.heldObject.body.allowGravity = false;
                 }
