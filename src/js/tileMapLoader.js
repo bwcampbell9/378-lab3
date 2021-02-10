@@ -2,9 +2,9 @@ import PlayerController from "./player_controller.js"
 import PhysicsObject from "./physics_object.js"
 
 export default class TileMapLevel extends Phaser.Scene {
-  constructor(tilesetPath="../Resources/Subway_tiles.png", 
-              tilesetName="Spaceship",
-              tilemapPath="../Resources/spaceShipLarge.json",
+  constructor(tilesetPath="../Resources/Subway_tiles_big.png", 
+              tilesetName="Spaceship_Tileset_big",
+              tilemapPath="../Resources/Spaceship_big_test.json",
               sceneName="Test Scene")
   {
     super(sceneName);
@@ -19,9 +19,9 @@ export default class TileMapLevel extends Phaser.Scene {
     this.load.image('box', "../Assets/box.png");
     this.load.tilemapTiledJSON('tilemap', this.tilemapPath);  
 
-    this.load.spritesheet("player_walk", "../Assets/astronautWALK.png", { frameWidth: 32, frameHeight: 38 });
-    this.load.spritesheet("player_idle", "../Assets/astronautIDLE.png", { frameWidth: 32, frameHeight: 38 });
-    this.load.spritesheet("player_float", "../Assets/astronautFLOAT.png", { frameWidth: 32, frameHeight: 38 });
+    this.load.spritesheet("player_walk", "../Assets/astronautWALK_big.png", { frameWidth: 64, frameHeight: 72 });
+    this.load.spritesheet("player_idle", "../Assets/astronautIDLE_big.png", { frameWidth: 64, frameHeight: 72 });
+    this.load.spritesheet("player_float", "../Assets/astronautFLOAT_big.png", { frameWidth: 64, frameHeight: 72 });
   }
 
   create() {
@@ -30,11 +30,9 @@ export default class TileMapLevel extends Phaser.Scene {
     const map = this.make.tilemap({ key: 'tilemap'});
     const tileset = map.addTilesetImage(this.tilesetName, 'tile_image');
 
-    this.background = map.createStaticLayer('Background', tileset);
-    this.foreGround = map.createDynamicLayer('Foreground', tileset);
-    //this.decorations = map.createStaticLayer('decoration', tileset);
-    this.playerLayer = map.getObjectLayer('PlayerLayer')['objects'];
-    this.boxLayer = map.getObjectLayer('BoxLayer')['objects'];
+    this.background = map.createLayer('Background', tileset);
+    this.foreGround = map.createLayer('Foreground', tileset);
+    this.objectLayer = map.getObjectLayer('ObjectLayer')['objects'];
 
     //this.background.setScale(2);
     //this.foreGround.setScale(2);
@@ -46,31 +44,25 @@ export default class TileMapLevel extends Phaser.Scene {
     this.player = null;
     this.physicsObjects = this.add.group();
 
-    console.log(this.boxLayer);
-    this.playerLayer.forEach(object => {
-        this.player = new PlayerController(this, object.x, object.y, "player_float");
-      })
+    const tilesetProps = map.tilesets[0].tileProperties;
 
-    this.boxLayer.forEach(object => {
-      console.log("new box");
-        let newBox = new PhysicsObject(this, object.x, object.y, "box", "box");
-        this.physicsObjects.add(newBox);
-      })
 
-    // console.log(this.objectLayer);
-    // this.objectLayer.forEach(object => {
-    //   console.log(object);
-    //   switch (object.type) {
-    //     case "player":
-    //       this.player = new PlayerController(this, object.x, object.y, texture);
-    //       break;
-    //     case "physics":
-    //       let newBox = new PhysicsObject(this, object.x, object.y, object.texture, object.name);
-    //       this.physicsObjects.add(newBox);
-    //     default:
-    //       break;
-    //   }
-    // })
+    this.objectLayer.forEach(object => {
+      const props = tilesetProps[object.gid-1];
+      switch (props["type"]) {
+        case "player":
+          this.player = new PlayerController(this, object.x, object.y);
+          break;
+        case "physics":
+          let newBox = new PhysicsObject(this, object.x, object.y, props["texture"], props["name"]);
+          this.physicsObjects.add(newBox);
+        case "text":
+          // let newText = new whatever(this, object.x, object.y props["text"]) // You can add and use other props too
+          //this.textObjects.add(newText); //make group called textObjects and add collision with the player then on collision for the first time show the text.
+        default:
+          break;
+      }
+    })
 
     if(!this.player) {
       //error case

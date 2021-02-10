@@ -1,6 +1,6 @@
 export default class PlayerController extends Phaser.Physics.Arcade.Sprite {
 
-    constructor(scene,x,y,texture) {
+    constructor(scene,x,y,texture="player_float") {
 		super(scene,x,y,texture);
 		this.setTexture(texture);
 		scene.add.existing(this);
@@ -48,7 +48,7 @@ export default class PlayerController extends Phaser.Physics.Arcade.Sprite {
         });
 
         // set bounds so the camera won't go outside the game world
-        scene.cameras.main.setBounds(0, 0, scene.widthInPixels, scene.heightInPixels);
+        //scene.cameras.main.setBounds(0, 0, 1, 1);
         // make the camera follow the player
         scene.cameras.main.startFollow(this);
       
@@ -56,9 +56,9 @@ export default class PlayerController extends Phaser.Physics.Arcade.Sprite {
         scene.cameras.main.setBackgroundColor('#ccccff');
 
         this.pickups = {};
-        this.playerReach = 32;
+        this.playerReach = this.displayWidth * 1.5;
         this.motionSmoothing = 5;
-        this.jumpHeight = 2;
+        this.jumpHeight = 3;
         this.moveSpeed = 1;
 	}
 
