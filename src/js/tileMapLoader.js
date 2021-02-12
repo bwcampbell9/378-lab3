@@ -38,7 +38,8 @@ export default class TileMapLevel extends Phaser.Scene {
 
     this.background = map.createDynamicLayer('Background', tileset);
     this.foreground = map.createDynamicLayer('Foreground', tileset);
-    this.foreground.setDepth(10);
+    this.background.setDepth(-1);
+    this.foreground.setDepth(0);
     this.objectLayer = map.getObjectLayer('ObjectLayer')['objects'];
 
     this.background.setCollisionByProperty({collides: true});
@@ -52,18 +53,16 @@ export default class TileMapLevel extends Phaser.Scene {
     this.matter.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
     const boxOptions = {
-      restitution: 1,
+      restitution: 0,
       friction: 1,
       frictionStatic: 1,
-      density: 1,
     }
 
-    this.matter.world.add(new PhysicsObject(this, 100, 100, 'box', boxOptions));
-    
     this.player = null;
 
     const tilesetProps = map.tilesets[0].tileProperties;
 
+    this.physicsObjects = [];
 
     this.objectLayer.forEach(object => {
       const props = tilesetProps[object.gid-1];
@@ -72,7 +71,9 @@ export default class TileMapLevel extends Phaser.Scene {
           this.player = new Player(this, object.x, object.y);
           break;
         case "physics":
-          this.matter.world.add(new PhysicsObject(this, object.x, object.y, props["texture"], props["name"], boxOptions));
+          let box = new PhysicsObject(this, object.x, object.y, props["texture"], props["name"], boxOptions);
+          this.physicsObjects.push(box);
+          this.matter.world.add(box);
           break;
         case "text":
           // let newText = new whatever(this, object.x, object.y props["text"]) // you can add and use other props too
@@ -95,7 +96,7 @@ export default class TileMapLevel extends Phaser.Scene {
       });
     }
 
-    this.matter.world.createDebugGraphic();
+    //this.matter.world.createDebugGraphic();
 
     // this.physics.world.bounds.width = this.background.width;
     // this.physics.world.bounds.height = this.background.height;
@@ -111,8 +112,6 @@ export default class TileMapLevel extends Phaser.Scene {
   {
 
     //  Arcade Code:
-    // this.physicsObjects.children.entries.forEach(phys => {
-    //   this.player.updateInteract(phys);
-    // });
+    this.player.updateInteract(this.physicsObjects);
   }
 }

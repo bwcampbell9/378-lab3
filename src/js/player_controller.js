@@ -1,26 +1,44 @@
 import MultiKey from "./multi-key.js";
 
-export class PlayerController extends Phaser.Physics.Matter.Sprite {
+// const camera = this.scene.cameras.main;
+// const newX = this.interp(camera.midPoint.x, this.x, .1);
+// const newY = this.interp(camera.midPoint.y, this.y, .1);
 
-    constructor(scene,x,y,texture="player_float", options) {
-		super(scene.matter.world,x,y,texture, options=options);
-		scene.add.existing(this);
+export default class Player {
+    constructor(scene, x, y) {
+      this.scene = scene;
+  
+      // Create the physics-based sprite that we will move around and animate
+      this.sprite = scene.matter.add.sprite(0, 0, "player_float");
+  
+      const { Body, Bodies } = Phaser.Physics.Matter.Matter; // Native Matter modules
+      const { width: w, height: h } = this.sprite;
+      console.log(w, h);
+      const mainBody = Bodies.rectangle(0, h*.25, w * 0.5, h * .9, { chamfer: { radius: 2 } });
+      this.sensors = {
+        bottom: Bodies.rectangle(0, h * 0.7, w * 0.4, 2, { isSensor: true }),
+        left: Bodies.rectangle(-w * 0.3, h*.25, 2, h * 0.8, { isSensor: true }),
+        right: Bodies.rectangle(w * 0.3, h*.25, 2, h * 0.8, { isSensor: true })
+      };
+      const compoundBody = Body.create({
+        parts: [mainBody, this.sensors.bottom, this.sensors.left, this.sensors.right],
+        frictionStatic: 0,
+        frictionAir: 0.02,
+        friction: 0.1
+      });
+      this.sprite
+        .setExistingBody(compoundBody)
+        .setScale(2)
+        .setFixedRotation() // Sets inertia to infinity so the player can't rotate
+        .setPosition(x, y)
+        .setCollisionCategory(1);
 
-        this.scene = scene;
-
-        //this.body.setSize(this.width, this.height-8);
-
-        this.cursors = scene.input.keyboard.createCursorKeys();
-
-        const { LEFT, RIGHT, UP, DOWN } = Phaser.Input.Keyboard.KeyCodes;
-        this.keys = this.scene.input.keyboard.addKeys({
-            left: "A",
-            right: "D",
-            up: "W",
-            down: "S",
-            interact: "F",
-            pickup: "E",
-        });
+        const { LEFT, RIGHT, SPACE, UP, A, D, W, E, F } = Phaser.Input.Keyboard.KeyCodes;
+        this.leftInput = new MultiKey(scene, [LEFT, A]);
+        this.rightInput = new MultiKey(scene, [RIGHT, D]);
+        this.jumpInput = new MultiKey(scene, [UP, W, SPACE]);
+        this.pickup = new MultiKey(scene, [E]);
+        this.interact = new MultiKey(scene, [F]);
 
         scene.anims.create({
             key: 'walk',
@@ -40,140 +58,6 @@ export class PlayerController extends Phaser.Physics.Matter.Sprite {
             frameRate: 0,
             repeat: -1
         });
-
-        // set bounds so the camera won't go outside the game world
-        //awscene.cameras.main.setBounds(0, 0, 1, 1);
-        // make the camera follow the player
-        this.scene.cameras.main.centerOn(this.x, this.y);
-      
-        // set background color, so the sky is not black    
-        scene.cameras.main.setBackgroundColor('#ccccff');
-
-        this.pickups = {};
-        this.playerReach = this.displayWidth * 1.5;
-        this.motionSmoothing = .4;
-        this.jumpHeight = 3;
-        this.moveSpeed = 1;
-	}
-
-    preUpdate(time, delta) {
-        super.preUpdate(time, delta);
-
-        const camera = this.scene.cameras.main;
-        const newX = this.interp(camera.midPoint.x, this.x, .1);
-        const newY = this.interp(camera.midPoint.y, this.y, .1);
-
-        camera.setScroll(newX-camera.width/2, newY-camera.height/2);
-        
-        let anim = 'idle';
-        if (this.keys.left.isDown)
-        {
-            this.setVelocityX(-100 * this.moveSpeed);
-            anim = 'walk';
-            this.flipX = false; // flip the sprite to the left
-        }
-        else if (this.keys.right.isDown)
-        {
-            this.body.setVelocityX(100 * this.moveSpeed);
-            anim = 'walk';
-            this.flipX = true; // use the original sprite looking to the right
-        } else {
-            this.body.setVelocityX(0);
-        }
-        if(!(this.body.onFloor() || this.body.touching.down)) {
-            anim = 'float';
-        }
-        this.anims.play(anim, true);
-
-        // jump 
-        if (this.keys.up.isDown && (this.body.onFloor() || this.body.touching.down))
-        {
-            this.body.setVelocityY(-100 * this.jumpHeight);        
-        }
-
-        if(this.heldObject) {
-            if(Phaser.Input.Keyboard.JustDown(this.keys.pickup)) {
-                console.log("drop");
-                this.heldObject.body.allowGravity = true;
-                this.heldObject.setVelocityX(this.body.velocity.x);
-                this.heldObject.setVelocityY(this.body.velocity.y);
-                this.heldObject = null;
-            } else {
-                const holdDistance = this.displayWidth/2 + this.heldObject.displayWidth/2 + 5;
-                const targetX = ((this.x + (holdDistance * (this.flipX ? 1 : -1))) - this.heldObject.x) + this.heldObject.x;
-                const targetY = (this.y - this.heldObject.y) + this.heldObject.y;
-                this.heldObject.x = this.interp(this.heldObject.x, targetX, this.motionSmoothing);
-                this.heldObject.y = this.interp(this.heldObject.y, targetY, this.motionSmoothing);
-            }
-        }
-    }
-
-    interp(current, target, smoothing) {
-        const distance = target - current;
-        return current + distance * smoothing;
-    }
-
-    collidePickup(pickup) {
-        const name = pickup.getName();
-        this.pickups[name] = this.pickups[name] ? this.pickups[name] + 1 : 1;
-        pickup.destroy(); //TODO: add to ui or something to show the player that they have the item
-    }
-
-    pickupCount(pickupName) {
-        return this.pickups[pickupName] ? this.pickups[pickupName] : 0;
-    }
-
-    updateInteract(phys) {
-        if(Phaser.Math.Distance.Between(this.x, this.y, phys.x, phys.y) < this.playerReach) {
-            if(phys.getType && phys.getType().includes("physics-object") && !this.heldObject) {
-                // pop up little E icon to show that you can interact
-                if(Phaser.Input.Keyboard.JustDown(this.keys.pickup)) {
-                    this.heldObject = phys;
-                    this.heldObject.body.allowGravity = false;
-                }
-            }
-            if(phys.getType && phys.getType().includes("interactable")) {
-                //pop up little F icon
-                if(Phaser.Input.Keyboard.JustDown(this.keys.interact)) {
-                    phys.interact(this);
-                }
-            }
-        }
-    }
-}
-
-export default class Player {
-    constructor(scene, x, y) {
-      this.scene = scene;
-  
-      // Create the physics-based sprite that we will move around and animate
-      this.sprite = scene.matter.add.sprite(0, 0, "player_float");
-  
-      const { Body, Bodies } = Phaser.Physics.Matter.Matter; // Native Matter modules
-      const { width: w, height: h } = this.sprite;
-      console.log(w, h);
-      const mainBody = Bodies.rectangle(0, 0, w * 0.6, h, { chamfer: { radius: 2 } });
-      this.sensors = {
-        bottom: Bodies.rectangle(0, h * 0.5, w * 0.25, 2, { isSensor: true }),
-        left: Bodies.rectangle(-w * 0.35, 0, 2, h * 0.5, { isSensor: true }),
-        right: Bodies.rectangle(w * 0.35, 0, 2, h * 0.5, { isSensor: true })
-      };
-      const compoundBody = Body.create({
-        parts: [mainBody, this.sensors.bottom, this.sensors.left, this.sensors.right],
-        frictionStatic: 0,
-        frictionAir: 0.02,
-        friction: 0.1
-      });
-      this.sprite
-        .setExistingBody(compoundBody)
-        .setScale(2)
-        .setFixedRotation() // Sets inertia to infinity so the player can't rotate
-        .setPosition(x, y);
-
-        const { LEFT, RIGHT, SPACE, UP, A, D, W } = Phaser.Input.Keyboard.KeyCodes;
-        this.leftInput = new MultiKey(scene, [LEFT, A]);
-        this.rightInput = new MultiKey(scene, [RIGHT, D]);
-        this.jumpInput = new MultiKey(scene, [UP, W, SPACE]);
 
         this.isTouching = { left: false, right: false, ground: false };
 
@@ -201,9 +85,13 @@ export default class Player {
             context: this
         });
     
-        this.acceleration = .01;
+        this.sprite.setMass(.05);
+
+        this.acceleration = .0004;
         this.maxVelocity = 3;
-        this.jumpHeight = 10;
+        this.jumpHeight = 5.5;
+        this.playerReach = 75;
+        this.motionSmoothing = .37;
     }
 
     update() {
@@ -217,17 +105,26 @@ export default class Player {
         const isOnGround = this.isTouching.ground;
         const isInAir = !isOnGround;
 
+        let anim = "idle";
         if (isLeftKeyDown) {
             sprite.setFlipX(false);
             if (!(isInAir && this.isTouching.left)) {
                 sprite.applyForce({ x: -this.acceleration, y: 0 });
             }
+            anim = "walk";
         } else if (isRightKeyDown) {
             sprite.setFlipX(true);
             if (!(isInAir && this.isTouching.right)) {
                 sprite.applyForce({ x: this.acceleration, y: 0 });
             }
+            anim = "walk";
         }
+
+        if(isInAir) {
+            anim = 'float';
+        }
+
+        this.sprite.anims.play(anim, true);
 
         // Limit horizontal speed, without this the player's velocity would just keep increasing to
         // absurd speeds. We don't want to touch the vertical velocity though, so that we don't
@@ -235,14 +132,73 @@ export default class Player {
         if (velocity.x > this.maxVelocity) sprite.setVelocityX(this.maxVelocity);
         else if (velocity.x < -this.maxVelocity) sprite.setVelocityX(-this.maxVelocity);
 
-        if (isJumpKeyDown && this.canJump && isOnGround) {
+        if (isJumpKeyDown  && isOnGround) {
             sprite.setVelocityY(-this.jumpHeight);
-            this.canJump = false;
-            // this.jumpCooldownTimer = this.scene.time.addEvent({
-            //     delay: 250,
-            //     callback: () => (this.canJump = true)
-            // });
         }
+
+        if(this.heldObject) {
+            if(this.pickup.justDown()) {
+                console.log("drop");
+                this.heldObject.setCollidesWith(3);
+                this.heldObject.setIgnoreGravity(false);
+                this.heldObject.setVelocity(velocity.x, velocity.y);
+                this.heldObject = null;
+            } else {
+                const holdDistance = this.sprite.displayWidth/2 + this.heldObject.displayWidth/2;
+                const targetX = ((this.sprite.x + (holdDistance * (this.sprite.flipX ? 1 : -1))) - this.heldObject.x) + this.heldObject.x;
+                const targetY = (this.sprite.y - this.heldObject.y) + this.heldObject.y;
+                this.heldObject.setPosition(this.interp(this.heldObject.x, targetX, this.motionSmoothing),
+                                            this.interp(this.heldObject.y, targetY, this.motionSmoothing));
+                this.heldObject.setRotation(this.interp(this.heldObject.rotation, velocity.x/this.maxVelocity * 0.7853, .1));
+            }
+        }
+    }
+
+    updateInteract(physObjs) {
+        var smallestDistance = 5000;
+        var closeObj = null;
+        const phys = physObjs[0];
+        //console.log(this.sprite.x, this.sprite.y);a
+        //console.log("Dist: " + this.distance(this.sprite.x, this.sprite.y, phys.x, phys.y));
+        if(!this.heldObject) {
+            physObjs.forEach(phys => {
+                const dist = this.distance(this.sprite.x, this.sprite.y, phys.x, phys.y);
+                //console.log(this.sprite.x, this.sprite.y);
+                //console.log("Dist: " + (this.sprite.x, this.sprite.y, phys.x, phys.y));
+                if(dist < smallestDistance && dist < this.playerReach) {
+                    smallestDistance = dist;
+                    closeObj = phys;
+                }
+            });
+            if(closeObj) {
+                if(closeObj.getType && closeObj.getType().includes("physics-object")) {
+                    // pop up little E icon to show that you can interact
+                    if(this.pickup.justDown()) {
+                        console.log(closeObj.getType());
+                        this.heldObject = closeObj;
+                        this.heldObject.setCollidesWith(0);
+                        this.heldObject.setIgnoreGravity(true);
+                    }
+                }
+                // if(phys.getType && closeObj.getType().includes("interactable")) {
+                //     //pop up little F icon
+                //     if(Phaser.Input.Keyboard.JustDown(this.interact)) {
+                //         closeObj.interact(this);
+                //     }
+                // }
+            }
+        }
+    }
+
+    interp(current, target, smoothing) {
+        const distance = target - current;
+        return current + distance * smoothing;
+    }
+
+    distance(x1, y1, x2, y2) {
+        var a = x1 - x2;
+        var b = y1 - y2;
+        return Math.sqrt( a*a + b*b );
     }
 
     onSensorCollide({ bodyA, bodyB, pair }) {

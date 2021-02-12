@@ -14,6 +14,10 @@ export default class MultiKey {
     return this.keys.some(key => key.isDown);
   }
 
+  justDown() {
+    return this.keys.some(key => Phaser.Input.Keyboard.JustDown(key));
+  }
+
   // Are all of the keys up?
   isUp() {
     return this.keys.every(key => key.isUp);
