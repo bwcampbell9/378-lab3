@@ -1,4 +1,4 @@
-import PlayerController from "./player_controller.js"
+import Player from "./player_controller.js"
 import PhysicsObject from "./physics_object.js"
 
 export default class TileMapLevel extends Phaser.Scene {
@@ -15,34 +15,52 @@ export default class TileMapLevel extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('tile_image', this.tilesetPath);
     this.load.image('box', "../Assets/box.png");
+
+    this.load.image('tile_image', this.tilesetPath);
     this.load.tilemapTiledJSON('tilemap', this.tilemapPath);  
 
-    this.load.spritesheet("player_walk", "../Assets/astronautWALK_big.png", { frameWidth: 64, frameHeight: 72 });
-    this.load.spritesheet("player_idle", "../Assets/astronautIDLE_big.png", { frameWidth: 64, frameHeight: 72 });
-    this.load.spritesheet("player_float", "../Assets/astronautFLOAT_big.png", { frameWidth: 64, frameHeight: 72 });
+    this.load.spritesheet("player_walk", "../Assets/astronautWALK.png", { frameWidth: 32, frameHeight: 36 });
+    this.load.spritesheet("player_idle", "../Assets/astronautIDLE.png", { frameWidth: 32, frameHeight: 36 });
+    this.load.spritesheet("player_float", "../Assets/astronautFLOAT.png", { frameWidth: 32, frameHeight: 36 });
   }
 
   create() {
-    // this.add.image(0, 0, 'tiles');
-    this.physics.world.setBoundsCollision(true, true, true, true);
+
+    //const bodyOptions = { restitution: 1, friction: 0, shape: "circle" };
+    //const emoji1 = this.matter.add.sprite(250, 100, "box", "1f62c", bodyOptions);
+    //const emoji2 = this.matter.add.sprite(250, 275, "box", "1f62c", bodyOptions);
+
+    //Arcade code:
+
     const map = this.make.tilemap({ key: 'tilemap'});
     const tileset = map.addTilesetImage(this.tilesetName, 'tile_image');
 
-    this.background = map.createLayer('Background', tileset);
-    this.foreGround = map.createLayer('Foreground', tileset);
+    this.background = map.createDynamicLayer('Background', tileset);
+    this.foreground = map.createDynamicLayer('Foreground', tileset);
+    this.foreground.setDepth(10);
     this.objectLayer = map.getObjectLayer('ObjectLayer')['objects'];
 
-    //this.background.setScale(2);
-    //this.foreGround.setScale(2);
-
     this.background.setCollisionByProperty({collides: true});
-    this.foreGround.setCollisionByProperty({collides: true});
-    //this.decorations.setCollisionByProperty({collides: true});
+    this.foreground.setCollisionByProperty({collides: true});
+    // //this.decorations.setCollisionByProperty({collides: true});
 
+    this.matter.world.convertTilemapLayer(this.background);
+    this.matter.world.convertTilemapLayer(this.foreground);
+
+    this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    this.matter.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
+    const boxOptions = {
+      restitution: 1,
+      friction: 1,
+      frictionStatic: 1,
+      density: 1,
+    }
+
+    this.matter.world.add(new PhysicsObject(this, 100, 100, 'box', boxOptions));
+    
     this.player = null;
-    this.physicsObjects = this.add.group();
 
     const tilesetProps = map.tilesets[0].tileProperties;
 
@@ -51,11 +69,11 @@ export default class TileMapLevel extends Phaser.Scene {
       const props = tilesetProps[object.gid-1];
       switch (props["type"]) {
         case "player":
-          this.player = new PlayerController(this, object.x, object.y);
+          this.player = new Player(this, object.x, object.y);
           break;
         case "physics":
-          let newBox = new PhysicsObject(this, object.x, object.y, props["texture"], props["name"]);
-          this.physicsObjects.add(newBox);
+          this.matter.world.add(new PhysicsObject(this, object.x, object.y, props["texture"], props["name"], boxOptions));
+          break;
         case "text":
           // let newText = new whatever(this, object.x, object.y props["text"]) // you can add and use other props too
           //this.textObjects.add(newText); //make group called textObjects and add collision with the player then on collision for the first time show the text.
@@ -67,22 +85,34 @@ export default class TileMapLevel extends Phaser.Scene {
     if(!this.player) {
       //error case
       console.error("Error: player object not found in tilemap.");
+    } else {
+      this.cameras.main.startFollow(this.player.sprite, false, 0.5, 0.5);
+
+      this.unsubscribePlayerCollide = this.matterCollision.addOnCollideStart({
+        objectA: this.player.sprite,
+        callback: this.onPlayerCollide,
+        context: this
+      });
     }
 
-    this.physics.world.bounds.width = this.background.width;
-    this.physics.world.bounds.height = this.background.height;
+    this.matter.world.createDebugGraphic();
 
-    this.physics.world.addCollider(this.player, this.foreGround);
-    this.physics.world.addCollider(this.physicsObjects, this.foreGround);
-    this.physics.world.addCollider(this.player, this.decorations);
-    this.physics.add.collider(this.physicsObjects, this.physicsObjects);
-    this.physics.add.collider(this.player, this.physicsObjects);
+    // this.physics.world.bounds.width = this.background.width;
+    // this.physics.world.bounds.height = this.background.height;
+
+    // this.physics.world.addCollider(this.player, this.foreGround);
+    // this.physics.world.addCollider(this.physicsObjects, this.foreGround);
+    // this.physics.world.addCollider(this.player, this.decorations);
+    // this.physics.add.collider(this.physicsObjects, this.physicsObjects);
+    // this.physics.add.collider(this.player, this.physicsObjects);
   }
 
   update(time, delta)
   {
-    this.physicsObjects.children.entries.forEach(phys => {
-      this.player.updateInteract(phys);
-    });
+
+    //  Arcade Code:
+    // this.physicsObjects.children.entries.forEach(phys => {
+    //   this.player.updateInteract(phys);
+    // });
   }
 }

@@ -1,22 +1,14 @@
-export default class PlayerController extends Phaser.Physics.Arcade.Sprite {
+import MultiKey from "./multi-key.js";
 
-    constructor(scene,x,y,texture="player_float") {
-		super(scene,x,y,texture);
-		this.setTexture(texture);
+export class PlayerController extends Phaser.Physics.Matter.Sprite {
+
+    constructor(scene,x,y,texture="player_float", options) {
+		super(scene.matter.world,x,y,texture, options=options);
 		scene.add.existing(this);
-        scene.physics.add.existing(this);
 
         this.scene = scene;
 
-		this.setBounce(0);
-        this.setCollideWorldBounds(true); // don't go out of the map
-
-        this.pushable = false;
-
-        this.scaleX = .5;
-        this.scaleY = .5;
-
-        this.body.setSize(this.width, this.height-8);
+        //this.body.setSize(this.width, this.height-8);
 
         this.cursors = scene.input.keyboard.createCursorKeys();
 
@@ -59,7 +51,7 @@ export default class PlayerController extends Phaser.Physics.Arcade.Sprite {
 
         this.pickups = {};
         this.playerReach = this.displayWidth * 1.5;
-        this.motionSmoothing = .7;
+        this.motionSmoothing = .4;
         this.jumpHeight = 3;
         this.moveSpeed = 1;
 	}
@@ -70,12 +62,8 @@ export default class PlayerController extends Phaser.Physics.Arcade.Sprite {
         const camera = this.scene.cameras.main;
         const newX = this.interp(camera.midPoint.x, this.x, .1);
         const newY = this.interp(camera.midPoint.y, this.y, .1);
-        //console.log(camera.getWorldPoint(this.x, this.y));
+
         camera.setScroll(newX-camera.width/2, newY-camera.height/2);
-        //console.log("oldX: " + camera.midPoint.x + "newX: " + newX + ", oldY: " + camera.midPoint.y + "newY: " + newY);
-        //camera.centerOn(2000, 2000);
-        //console.log(this.x, this.y)
-        //camera.centerOn(this.x, this.y);
         
         let anim = 'idle';
         if (this.keys.left.isDown)
@@ -153,3 +141,149 @@ export default class PlayerController extends Phaser.Physics.Arcade.Sprite {
         }
     }
 }
+
+export default class Player {
+    constructor(scene, x, y) {
+      this.scene = scene;
+  
+      // Create the physics-based sprite that we will move around and animate
+      this.sprite = scene.matter.add.sprite(0, 0, "player_float");
+  
+      const { Body, Bodies } = Phaser.Physics.Matter.Matter; // Native Matter modules
+      const { width: w, height: h } = this.sprite;
+      console.log(w, h);
+      const mainBody = Bodies.rectangle(0, 0, w * 0.6, h, { chamfer: { radius: 2 } });
+      this.sensors = {
+        bottom: Bodies.rectangle(0, h * 0.5, w * 0.25, 2, { isSensor: true }),
+        left: Bodies.rectangle(-w * 0.35, 0, 2, h * 0.5, { isSensor: true }),
+        right: Bodies.rectangle(w * 0.35, 0, 2, h * 0.5, { isSensor: true })
+      };
+      const compoundBody = Body.create({
+        parts: [mainBody, this.sensors.bottom, this.sensors.left, this.sensors.right],
+        frictionStatic: 0,
+        frictionAir: 0.02,
+        friction: 0.1
+      });
+      this.sprite
+        .setExistingBody(compoundBody)
+        .setScale(2)
+        .setFixedRotation() // Sets inertia to infinity so the player can't rotate
+        .setPosition(x, y);
+
+        const { LEFT, RIGHT, SPACE, UP, A, D, W } = Phaser.Input.Keyboard.KeyCodes;
+        this.leftInput = new MultiKey(scene, [LEFT, A]);
+        this.rightInput = new MultiKey(scene, [RIGHT, D]);
+        this.jumpInput = new MultiKey(scene, [UP, W, SPACE]);
+
+        this.isTouching = { left: false, right: false, ground: false };
+
+        // Jumping is going to have a cooldown
+        this.canJump = true;
+        //this.jumpCooldownTimer = null;
+
+        // Before matter's update, reset our record of what surfaces the player is touching.
+        this.destroyed = false;
+        scene.matter.world.on("beforeupdate", this.resetTouching, this);
+        this.scene.events.on("update", this.update, this);
+        this.scene.events.once("shutdown", this.destroy, this);
+        this.scene.events.once("destroy", this.destroy, this);
+
+        // If a sensor just started colliding with something, or it continues to collide with something,
+        // call onSensorCollide
+        scene.matterCollision.addOnCollideStart({
+            objectA: [this.sensors.bottom, this.sensors.left, this.sensors.right],
+            callback: this.onSensorCollide,
+            context: this
+        });
+        scene.matterCollision.addOnCollideActive({
+            objectA: [this.sensors.bottom, this.sensors.left, this.sensors.right],
+            callback: this.onSensorCollide,
+            context: this
+        });
+    
+        this.acceleration = .01;
+        this.maxVelocity = 3;
+        this.jumpHeight = 10;
+    }
+
+    update() {
+        if (this.destroyed) return;
+
+        const sprite = this.sprite;
+        const velocity = sprite.body.velocity;
+        const isRightKeyDown = this.rightInput.isDown();
+        const isLeftKeyDown = this.leftInput.isDown();
+        const isJumpKeyDown = this.jumpInput.isDown();
+        const isOnGround = this.isTouching.ground;
+        const isInAir = !isOnGround;
+
+        if (isLeftKeyDown) {
+            sprite.setFlipX(false);
+            if (!(isInAir && this.isTouching.left)) {
+                sprite.applyForce({ x: -this.acceleration, y: 0 });
+            }
+        } else if (isRightKeyDown) {
+            sprite.setFlipX(true);
+            if (!(isInAir && this.isTouching.right)) {
+                sprite.applyForce({ x: this.acceleration, y: 0 });
+            }
+        }
+
+        // Limit horizontal speed, without this the player's velocity would just keep increasing to
+        // absurd speeds. We don't want to touch the vertical velocity though, so that we don't
+        // interfere with gravity.
+        if (velocity.x > this.maxVelocity) sprite.setVelocityX(this.maxVelocity);
+        else if (velocity.x < -this.maxVelocity) sprite.setVelocityX(-this.maxVelocity);
+
+        if (isJumpKeyDown && this.canJump && isOnGround) {
+            sprite.setVelocityY(-this.jumpHeight);
+            this.canJump = false;
+            // this.jumpCooldownTimer = this.scene.time.addEvent({
+            //     delay: 250,
+            //     callback: () => (this.canJump = true)
+            // });
+        }
+    }
+
+    onSensorCollide({ bodyA, bodyB, pair }) {
+        if (bodyB.isSensor) return; // We only care about collisions with physical objects
+        if (bodyA === this.sensors.left) {
+          this.isTouching.left = true;
+          if (pair.separation > 0.5) this.sprite.x += pair.separation - 0.5;
+        } else if (bodyA === this.sensors.right) {
+          this.isTouching.right = true;
+          if (pair.separation > 0.5) this.sprite.x -= pair.separation - 0.5;
+        } else if (bodyA === this.sensors.bottom) {
+          this.isTouching.ground = true;
+        }
+      }
+    
+      resetTouching() {
+        this.isTouching.left = false;
+        this.isTouching.right = false;
+        this.isTouching.ground = false;
+      }
+
+      destroy() {
+        this.destroyed = true;
+    
+        // Event listeners
+        this.scene.events.off("update", this.update, this);
+        this.scene.events.off("shutdown", this.destroy, this);
+        this.scene.events.off("destroy", this.destroy, this);
+        if (this.scene.matter.world) {
+          this.scene.matter.world.off("beforeupdate", this.resetTouching, this);
+        }
+    
+        // Matter collision plugin
+        const sensors = [this.sensors.bottom, this.sensors.left, this.sensors.right];
+        this.scene.matterCollision.removeOnCollideStart({ objectA: sensors });
+        this.scene.matterCollision.removeOnCollideActive({ objectA: sensors });
+    
+        // Don't want any timers triggering post-mortem
+        if (this.jumpCooldownTimer) this.jumpCooldownTimer.destroy();
+    
+        this.sprite.destroy();
+      }
+  }
+  

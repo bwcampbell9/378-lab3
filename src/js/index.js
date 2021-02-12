@@ -1,4 +1,5 @@
 import TileMapLevel from "./tileMapLoader.js"
+import PhaserMatterCollisionPlugin from "../lib/phaser-matter-collision-plugin.js";
 import Phaser from "../lib/phaser.js"
 
 const DEFAULT_WIDTH = 1024
@@ -9,15 +10,15 @@ let SCALE_MODE = 'SMOOTH' // FIT OR SMOOTH
 
 const config = {
     type: Phaser.AUTO,
-    width: 400,
-    height: 200,
+    width: 640,
+    height: 640,
     parent: "game-container",
     backgroundColor: "#1d212d",
     scene: TileMapLevel,
     physics: {
-      default: "arcade",
-      arcade: {
-        gravity: { y: 1000 }
+      default: "matter",
+      matter: {
+        gravity: { y: 1 } // This is the default value, so we could omit this
       }
     },
     render: {
@@ -27,6 +28,15 @@ const config = {
       // we do scale the game manually in resize()
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH
+    },
+    plugins: {
+      scene: [
+        {
+          plugin: PhaserMatterCollisionPlugin, // The plugin class
+          key: "matterCollision", // Where to store in Scene.Systems, e.g. scene.sys.matterCollision
+          mapping: "matterCollision" // Where to store in the Scene, e.g. scene.matterCollision
+        }
+      ]
     },
   };
 
