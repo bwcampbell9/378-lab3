@@ -10,8 +10,8 @@ let SCALE_MODE = 'SMOOTH' // FIT OR SMOOTH
 
 const config = {
     type: Phaser.AUTO,
-    width: 640,
-    height: 640,
+    width: 600,
+    height: 400,
     parent: "game-container",
     backgroundColor: "#1d212d",
     scene: TileMapLevel,

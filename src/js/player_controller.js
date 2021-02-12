@@ -13,7 +13,6 @@ export default class Player {
   
       const { Body, Bodies } = Phaser.Physics.Matter.Matter; // Native Matter modules
       const { width: w, height: h } = this.sprite;
-      console.log(w, h);
       const mainBody = Bodies.rectangle(0, h*.25, w * 0.5, h * .9, { chamfer: { radius: 2 } });
       this.sensors = {
         bottom: Bodies.rectangle(0, h * 0.7, w * 0.4, 2, { isSensor: true }),
@@ -87,6 +86,8 @@ export default class Player {
     
         this.sprite.setMass(.05);
 
+        this.closeObj = null;
+
         this.acceleration = .0004;
         this.maxVelocity = 3;
         this.jumpHeight = 5.5;
@@ -138,7 +139,6 @@ export default class Player {
 
         if(this.heldObject) {
             if(this.pickup.justDown()) {
-                console.log("drop");
                 this.heldObject.setCollidesWith(3);
                 this.heldObject.setIgnoreGravity(false);
                 this.heldObject.setVelocity(velocity.x, velocity.y);
@@ -171,10 +171,14 @@ export default class Player {
                 }
             });
             if(closeObj) {
+                if(closeObj != this.closeObj) {
+                    if(this.closeObj) this.closeObj.removeOutline();
+                    closeObj.addOutline();
+                    this.closeObj = closeObj;
+                }
                 if(closeObj.getType && closeObj.getType().includes("physics-object")) {
                     // pop up little E icon to show that you can interact
                     if(this.pickup.justDown()) {
-                        console.log(closeObj.getType());
                         this.heldObject = closeObj;
                         this.heldObject.setCollidesWith(0);
                         this.heldObject.setIgnoreGravity(true);
@@ -187,6 +191,13 @@ export default class Player {
                 //     }
                 // }
             }
+        } else if(this.closeObj) {
+            this.closeObj.removeOutline();
+            this.closeObj = null
+        }
+        if(this.closeObj && this.distance(this.sprite.x, this.sprite.y, this.closeObj.x, this.closeObj.y) > this.playerReach) {
+            this.closeObj.removeOutline();
+            this.closeObj = null
         }
     }
 

@@ -14,7 +14,26 @@ export default class PhysicsObject extends Phaser.Physics.Matter.Sprite {
     this.type = "physics-object"
     this.setCollisionCategory(2);
     this.setMass(1);
-    console.log(this.body);
+    this.outline = false;
+  }
+
+  addOutline() {
+    if(!this.outline) {
+      this.outline = true;
+      this.setPipeline('outline');
+      this.pipeline.setFloat2(
+        "uTextureSize",
+        this.texture.getSourceImage().width,
+        this.texture.getSourceImage().height
+      );
+    }
+  }
+
+  removeOutline() {
+    if(this.outline) {
+      this.outline = false;
+      this.resetPipeline();
+    }
   }
 
   getType() {

@@ -1,5 +1,6 @@
-import Player from "./player_controller.js"
-import PhysicsObject from "./physics_object.js"
+import Player from "./player_controller.js";
+import PhysicsObject from "./physics_object.js";
+import OutlinePipeline from "./outline.js";
 
 export default class TileMapLevel extends Phaser.Scene {
   constructor(tilesetPath="../Resources/Subway_tiles_big.png", 
@@ -23,6 +24,9 @@ export default class TileMapLevel extends Phaser.Scene {
     this.load.spritesheet("player_walk", "../Assets/astronautWALK.png", { frameWidth: 32, frameHeight: 36 });
     this.load.spritesheet("player_idle", "../Assets/astronautIDLE.png", { frameWidth: 32, frameHeight: 36 });
     this.load.spritesheet("player_float", "../Assets/astronautFLOAT.png", { frameWidth: 32, frameHeight: 36 });
+
+    this.outlinePipeline = this.game.renderer.addPipeline('outline', new OutlinePipeline(this.game));
+    
   }
 
   create() {
@@ -81,7 +85,9 @@ export default class TileMapLevel extends Phaser.Scene {
         default:
           break;
       }
-    })
+    });
+
+        //this.cameras.main.setRenderToTexture(this.outlinePipeline);
 
     if(!this.player) {
       //error case
@@ -115,3 +121,40 @@ export default class TileMapLevel extends Phaser.Scene {
     this.player.updateInteract(this.physicsObjects);
   }
 }
+
+var CustomPipeline = new Phaser.Class({
+  Extends: Phaser.Renderer.WebGL.Pipelines.TextureTintPipeline,
+  initialize:
+  function CustomPipeline (game)
+  {
+  Phaser.Renderer.WebGL.Pipelines.TextureTintPipeline.call(this, {
+          game: game,
+          renderer: game.renderer,
+          fragShader: [
+              'precision lowp float;',
+              'varying vec2 outTexCoord;',
+              'varying vec4 outTint;',
+              'uniform sampler2D uMainSampler;',
+              'uniform float alpha;',
+              'uniform float time;',
+              'void main() {',
+                  'vec4 sum = vec4(0);',
+                  'vec2 texcoord = outTexCoord;',
+                  'for(int xx = -4; xx <= 4; xx++) {',
+                      'for(int yy = -4; yy <= 4; yy++) {',
+                          'float dist = sqrt(float(xx*xx) + float(yy*yy));',
+                          'float factor = 0.0;',
+                          'if (dist == 0.0) {',
+                              'factor = 2.0;',
+                          '} else {',
+                              'factor = 2.0/abs(float(dist));',
+                          '}',
+                          'sum += texture2D(uMainSampler, texcoord + vec2(xx, yy) * 0.002) * (abs(sin(time))+0.06);',
+                      '}',
+                  '}',
+                  'gl_FragColor = sum * 0.025 + texture2D(uMainSampler, texcoord)*alpha;',
+              '}'
+          ].join('\n')
+      });
+  } 
+});
