@@ -7,7 +7,7 @@ export default class PhysicsObject extends Phaser.Physics.Arcade.Sprite {
     this.setCollideWorldBounds(true);
     this.setBounce(0);
     this.setPushable(false);
-    //this.body.setDrag(100, 0);
+    this.body.setDrag(100, 0);
 
     this.objectName = name;
     this.type = "physics-object"

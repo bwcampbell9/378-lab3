@@ -6,7 +6,9 @@ export default class PlayerController extends Phaser.Physics.Arcade.Sprite {
 		scene.add.existing(this);
         scene.physics.add.existing(this);
 
-		this.setBounce(.2);
+        this.scene = scene;
+
+		this.setBounce(0);
         this.setCollideWorldBounds(true); // don't go out of the map
 
         this.pushable = false;
@@ -31,7 +33,7 @@ export default class PlayerController extends Phaser.Physics.Arcade.Sprite {
         scene.anims.create({
             key: 'walk',
             frames: scene.anims.generateFrameNames('player_walk', {start: 0, end: 3}),
-            frameRate: 10,
+            frameRate: 5,
             repeat: -1
         });
         scene.anims.create({
@@ -48,22 +50,32 @@ export default class PlayerController extends Phaser.Physics.Arcade.Sprite {
         });
 
         // set bounds so the camera won't go outside the game world
-        //scene.cameras.main.setBounds(0, 0, 1, 1);
+        //awscene.cameras.main.setBounds(0, 0, 1, 1);
         // make the camera follow the player
-        scene.cameras.main.startFollow(this);
+        this.scene.cameras.main.centerOn(this.x, this.y);
       
         // set background color, so the sky is not black    
         scene.cameras.main.setBackgroundColor('#ccccff');
 
         this.pickups = {};
         this.playerReach = this.displayWidth * 1.5;
-        this.motionSmoothing = 5;
+        this.motionSmoothing = .7;
         this.jumpHeight = 3;
         this.moveSpeed = 1;
 	}
 
     preUpdate(time, delta) {
         super.preUpdate(time, delta);
+
+        const camera = this.scene.cameras.main;
+        const newX = this.interp(camera.midPoint.x, this.x, .1);
+        const newY = this.interp(camera.midPoint.y, this.y, .1);
+        //console.log(camera.getWorldPoint(this.x, this.y));
+        camera.setScroll(newX-camera.width/2, newY-camera.height/2);
+        //console.log("oldX: " + camera.midPoint.x + "newX: " + newX + ", oldY: " + camera.midPoint.y + "newY: " + newY);
+        //camera.centerOn(2000, 2000);
+        //console.log(this.x, this.y)
+        //camera.centerOn(this.x, this.y);
         
         let anim = 'idle';
         if (this.keys.left.isDown)
@@ -102,10 +114,15 @@ export default class PlayerController extends Phaser.Physics.Arcade.Sprite {
                 const holdDistance = this.displayWidth/2 + this.heldObject.displayWidth/2 + 5;
                 const targetX = ((this.x + (holdDistance * (this.flipX ? 1 : -1))) - this.heldObject.x) + this.heldObject.x;
                 const targetY = (this.y - this.heldObject.y) + this.heldObject.y;
-                this.heldObject.x = (this.heldObject.x * (this.motionSmoothing - 1) + targetX) / this.motionSmoothing;
-                this.heldObject.y = (this.heldObject.y * (this.motionSmoothing - 1) + targetY) / this.motionSmoothing;
+                this.heldObject.x = this.interp(this.heldObject.x, targetX, this.motionSmoothing);
+                this.heldObject.y = this.interp(this.heldObject.y, targetY, this.motionSmoothing);
             }
         }
+    }
+
+    interp(current, target, smoothing) {
+        const distance = target - current;
+        return current + distance * smoothing;
     }
 
     collidePickup(pickup) {

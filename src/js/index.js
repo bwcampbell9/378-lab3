@@ -12,7 +12,6 @@ const config = {
     width: 400,
     height: 200,
     parent: "game-container",
-    pixelArt: true,
     backgroundColor: "#1d212d",
     scene: TileMapLevel,
     physics: {
@@ -20,6 +19,9 @@ const config = {
       arcade: {
         gravity: { y: 1000 }
       }
+    },
+    render: {
+      antialias: false,
     },
     scale: {
       // we do scale the game manually in resize()

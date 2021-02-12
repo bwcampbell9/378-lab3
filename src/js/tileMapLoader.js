@@ -57,7 +57,7 @@ export default class TileMapLevel extends Phaser.Scene {
           let newBox = new PhysicsObject(this, object.x, object.y, props["texture"], props["name"]);
           this.physicsObjects.add(newBox);
         case "text":
-          // let newText = new whatever(this, object.x, object.y props["text"]) // You can add and use other props too
+          // let newText = new whatever(this, object.x, object.y props["text"]) // you can add and use other props too
           //this.textObjects.add(newText); //make group called textObjects and add collision with the player then on collision for the first time show the text.
         default:
           break;

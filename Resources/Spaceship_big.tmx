@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="8">
+<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="12">
+ <editorsettings>
+  <export target="Spaceship_big_test.json" format="json"/>
+ </editorsettings>
  <tileset firstgid="1" name="Spaceship_Tileset_big" tilewidth="32" tileheight="32" tilecount="625" columns="25">
   <image source="Subway_tiles_big.png" width="800" height="800"/>
   <tile id="1">
@@ -703,16 +706,12 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="3" name="PlayerLayer">
-  <object id="1" gid="402" x="3001" y="3107" width="32" height="32"/>
- </objectgroup>
- <objectgroup id="4" name="BoxLayer">
-  <object id="5" gid="378" x="2339" y="3131" width="32" height="32"/>
-  <object id="6" gid="378" x="2720" y="3039" width="32" height="32"/>
-  <object id="7" gid="378" x="2589" y="3075" width="32" height="32"/>
- </objectgroup>
  <objectgroup id="5" name="ObjectLayer">
   <object id="2" gid="402" x="3124" y="3103" width="32" height="32"/>
   <object id="4" gid="378" x="2956" y="3076" width="32" height="32"/>
+  <object id="8" gid="378" x="2337" y="3125" width="32" height="32"/>
+  <object id="9" gid="378" x="2712" y="3023" width="32" height="32"/>
+  <object id="10" gid="378" x="2584" y="3052" width="32" height="32"/>
+  <object id="11" gid="378" x="2691" y="3337" width="32" height="32"/>
  </objectgroup>
 </map>
