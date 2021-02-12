@@ -103,8 +103,8 @@ export default class TitleScreen extends Phaser.Scene{
     showCredits()
     {
         this.creditsButton.removeInteractive();
-        this.add.text(this.creditsButton.x * .5, this.creditsButton.y * .8,
-            "Music: Slinger's Song from \"Bastion\"\nLemoyne - Red Dead Redemption 2\nTiles: https://bakudas.itch.io/generic-run-n-gun",
+        this.add.text(this.creditsButton.x * .5, this.creditsButton.y * .7,
+            "Music: Slinger's Song from \"Bastion\" - Sadness : Pixel Beats\nLemoyne - Red Dead Redemption 2\nRetro TV - Friday Night (Chiptune Cover)\nTiles: https://bakudas.itch.io/generic-run-n-gun",
              { font: "Roboto Condensed",
                 fontsize: '12px'});
         this.creditsButton.destroy();
