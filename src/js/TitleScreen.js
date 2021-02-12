@@ -13,6 +13,7 @@ export default class TitleScreen extends Phaser.Scene{
         this.load.audio('playsound', ['Assets/play_sound.mp3']);
         this.load.spritesheet("player_idle", "../Assets/astronautIDLE_big.png", { frameWidth: 64, frameHeight: 72 });
         this.load.image('play', "Assets/PLAYTEXT.png");
+        this.load.image('creditsbutton', "Assets/CreditsButton.png");
     }
 
     create()
@@ -47,14 +48,20 @@ export default class TitleScreen extends Phaser.Scene{
         btnPlay.setInteractive()
         .on('pointerdown', () => this.nextLevel());
 
+        const creditsButton = this.add.image(topLeftX / 4, bottomRightY * 1.8, 'creditsbutton');
+        this.creditsButton = creditsButton;
+        creditsButton.setInteractive().on('pointerdown', () => this.showCredits());
+
 
         // scale the intro text
         btnPlay.setScale(.4);
+        creditsButton.setScale(.4);
         bryceJohn.setScale(.4);
         artCredits.setScale(.4);
         introText.setScale(.3);
 
         bryceJohn.alpha = 1.0;
+        creditsButton.alpha = 0.0;
         artCredits.alpha = 0.0;
         btnPlay.alpha = 0.0;
         introText.alpha = 0.0;
@@ -72,6 +79,7 @@ export default class TitleScreen extends Phaser.Scene{
                         introText.alpha = 1.0;
                         pSprite.alpha = 1.0;
                         btnPlay.alpha = 1.0;
+                        creditsButton.alpha = 1.0;
                         camera.fadeIn(800);
                     })
                 })
@@ -82,15 +90,23 @@ export default class TitleScreen extends Phaser.Scene{
     nextLevel()
     {
         this.playButton.removeInteractive();
+        this.sound.stopAll();
         this.playSound.play();
         this.cameras.main.fadeOut(2000);
+        
+        var exgame = this.game;
         this.cameras.main.once('camerafadeoutcomplete', function(camera) {
-            console.log("change scene here.");
+            exgame.scene.start("Scene One");
         })
     }
 
-    update(time, delta)
+    showCredits()
     {
-
+        this.creditsButton.removeInteractive();
+        this.add.text(this.creditsButton.x * .5, this.creditsButton.y * .8,
+            "Music: Slinger's Song from \"Bastion\"\nLemoyne - Red Dead Redemption 2\nTiles: https://bakudas.itch.io/generic-run-n-gun",
+             { font: "Roboto Condensed",
+                fontsize: '12px'});
+        this.creditsButton.destroy();
     }
 }

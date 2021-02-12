@@ -1,6 +1,7 @@
 import TileMapLevel from "./tileMapLoader.js"
 import TitleScreen from "./TitleScreen.js"
 import Phaser from "../lib/phaser.js"
+import SceneOne from "./SceneOne.js"
 
 const DEFAULT_WIDTH = 1024
 const DEFAULT_HEIGHT = 576
@@ -15,7 +16,7 @@ const config = {
     parent: "game-container",
     pixelArt: true,
     backgroundColor: "#1d212d",
-    scene: [TitleScreen, TileMapLevel],
+    scene: [TitleScreen, SceneOne, TileMapLevel],
     physics: {
       default: "arcade",
       arcade: {
