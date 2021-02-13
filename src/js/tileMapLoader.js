@@ -4,9 +4,9 @@ import OutlinePipeline from "./outline.js";
 import Door from "./door.js";
 
 export default class TileMapLevel extends Phaser.Scene {
-  constructor(tilesetPath="../Resources/Subway_tiles_big.png", 
+  constructor(tilesetPath="Resources/Subway_tiles_big.png", 
               tilesetName="Spaceship_Tileset_big",
-              tilemapPath="../Resources/Spaceship_big_test.json",
+              tilemapPath="Resources/Spaceship_big_test.json",
               sceneName="Main Scene")
   {
     super(sceneName);
@@ -17,14 +17,14 @@ export default class TileMapLevel extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('box', "../Assets/box.png");
+    this.load.image('box', "Assets/box.png");
 
     this.load.image('tile_image', this.tilesetPath);
     this.load.tilemapTiledJSON('tilemap', this.tilemapPath);  
 
-    this.load.spritesheet("player_walk", "../Assets/astronautWALK.png", { frameWidth: 32, frameHeight: 36 });
-    this.load.spritesheet("player_idle", "../Assets/astronautIDLE.png", { frameWidth: 32, frameHeight: 36 });
-    this.load.spritesheet("player_float", "../Assets/astronautFLOAT.png", { frameWidth: 32, frameHeight: 36 });
+    this.load.spritesheet("player_walk", "Assets/astronautWALK.png", { frameWidth: 32, frameHeight: 36 });
+    this.load.spritesheet("player_idle", "Assets/astronautIDLE.png", { frameWidth: 32, frameHeight: 36 });
+    this.load.spritesheet("player_float", "Assets/astronautFLOAT.png", { frameWidth: 32, frameHeight: 36 });
 
     this.outlinePipeline = this.game.renderer.addPipeline('outline', new OutlinePipeline(this.game));
     
