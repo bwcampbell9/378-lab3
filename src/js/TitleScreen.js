@@ -11,7 +11,7 @@ export default class TitleScreen extends Phaser.Scene{
         this.load.image('Title', 'Assets/IntroText.png');
         this.load.audio('music', ['Assets/title-music.mp3']);
         this.load.audio('playsound', ['Assets/play_sound.mp3']);
-        this.load.spritesheet("player_idle2", "../Assets/astronautIDLE_big.png", { frameWidth: 64, frameHeight: 72 });
+        this.load.spritesheet("title_player", "../Assets/astronautIDLE_big.png", { frameWidth: 64, frameHeight: 72 });
         this.load.image('play', "Assets/PLAYTEXT.png");
         this.load.image('creditsbutton', "Assets/CreditsButton.png");
     }
@@ -32,15 +32,15 @@ export default class TitleScreen extends Phaser.Scene{
         this.titlemusic = this.sound.add('music');
         this.playSound = this.sound.add('playsound');
         this.titlemusic.play();
-        this.playersprite = this.add.sprite(bottomRightX, bottomRightY, 'player_idle2');
+        this.playersprite = this.add.sprite(bottomRightX, bottomRightY, 'title_player');
         var pSprite = this.playersprite;
         this.anims.create({
-            key: 'idle',
-            frames: this.anims.generateFrameNames('player_idle2', {start: 0, end: 8}),
+            key: 'other_idle',
+            frames: this.anims.generateFrameNames('title_player', {start: 0, end: 8}),
             frameRate: 5,
             repeat: -1
         });
-        this.playersprite.anims.play('idle', true);
+        this.playersprite.anims.play('other_idle', true);
         this.playersprite.setScale(2);
         this.playersprite.alpha = 0.0;
         const btnPlay = this.add.image(topLeftX, bottomRightY, 'play');
