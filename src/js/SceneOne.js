@@ -13,7 +13,7 @@ export default class SceneOne extends Phaser.Scene{
 
     create()
     {
-        this.levelMusic = this.sound.add('musics1', {volume: .7});
+        this.levelMusic = this.sound.add('musics1', {volume: .7, loop: true});
         this.discoMusic = this.sound.add('disco', {volume: 1.1});
         this.levelMusic.play();
 
