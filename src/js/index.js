@@ -17,7 +17,7 @@ const config = {
     height: 288,
     parent: "game-container",
     backgroundColor: "#1d212d",
-    scene: [TitleScreen, SceneOne, TileMapLevel, EndScene],
+    scene: [TileMapLevel, EndScene],
     physics: {
       default: "matter",
       matter: {
