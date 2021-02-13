@@ -32,12 +32,13 @@ export default class Player {
         .setPosition(x, y)
         .setCollisionCategory(1);
 
-        const { LEFT, RIGHT, SPACE, UP, A, D, W, E, F } = Phaser.Input.Keyboard.KeyCodes;
+        const { LEFT, RIGHT, SPACE, SHIFT, UP, A, D, W, E, F } = Phaser.Input.Keyboard.KeyCodes;
         this.leftInput = new MultiKey(scene, [LEFT, A]);
         this.rightInput = new MultiKey(scene, [RIGHT, D]);
         this.jumpInput = new MultiKey(scene, [UP, W, SPACE]);
         this.pickup = new MultiKey(scene, [E]);
         this.interact = new MultiKey(scene, [F]);
+        this.walk = new MultiKey(scene, [SHIFT]);
 
         scene.anims.create({
             key: 'walk',
@@ -89,7 +90,9 @@ export default class Player {
         this.closeObj = null;
 
         this.acceleration = .0004;
-        this.maxVelocity = 3;
+        this.maxRunVelocity = 3;
+        this.maxWalkVelocity = .5;
+        this.maxVelocity = this.maxRunVelocity;
         this.jumpHeight = 5.5;
         this.playerReach = 75;
         this.motionSmoothing = .37;
@@ -103,18 +106,25 @@ export default class Player {
         const isRightKeyDown = this.rightInput.isDown();
         const isLeftKeyDown = this.leftInput.isDown();
         const isJumpKeyDown = this.jumpInput.isDown();
+        const isWalkKeyDown = this.walk.isDown();
         const isOnGround = this.isTouching.ground;
         const isInAir = !isOnGround;
 
+        if(isWalkKeyDown) {
+            this.maxVelocity = this.maxWalkVelocity;
+        } else {
+            this.maxVelocity = this.maxRunVelocity;
+        }
+
         let anim = "idle";
         if (isLeftKeyDown) {
-            sprite.setFlipX(false);
+            if(!isWalkKeyDown) sprite.setFlipX(false);
             if (!(isInAir && this.isTouching.left)) {
                 sprite.applyForce({ x: -this.acceleration, y: 0 });
             }
             anim = "walk";
         } else if (isRightKeyDown) {
-            sprite.setFlipX(true);
+            if(!isWalkKeyDown) sprite.setFlipX(true);
             if (!(isInAir && this.isTouching.right)) {
                 sprite.applyForce({ x: this.acceleration, y: 0 });
             }

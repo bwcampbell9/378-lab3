@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="right-down" width="20" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="10" nextobjectid="18">
+<map version="1.4" tiledversion="1.4.3" orientation="orthogonal" renderorder="right-down" width="20" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="10" nextobjectid="22">
  <editorsettings>
   <export target="Spaceship_big_test.json" format="json"/>
  </editorsettings>
@@ -499,6 +499,33 @@
     <property name="collides" type="bool" value="true"/>
    </properties>
   </tile>
+  <tile id="480">
+   <properties>
+    <property name="collides" type="bool" value="true"/>
+   </properties>
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="0" y="0">
+     <polygon points="0,0 32,32 0,32"/>
+    </object>
+   </objectgroup>
+  </tile>
+  <tile id="481">
+   <properties>
+    <property name="collides" type="bool" value="true"/>
+   </properties>
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="0" y="32">
+     <polygon points="0,0 32,-32 32,0"/>
+    </object>
+   </objectgroup>
+  </tile>
+  <tile id="502">
+   <properties>
+    <property name="name" value="box"/>
+    <property name="texture" value="box"/>
+    <property name="type" value="physics"/>
+   </properties>
+  </tile>
   <tile id="504">
    <properties>
     <property name="collides" type="bool" value="true"/>
@@ -545,20 +572,19 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,384,385,385,385,386,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+481,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 360,360,360,360,360,360,360,360,360,360,360,360,360,360,360,360,360,360,360,360
 </data>
  </layer>
- <objectgroup id="9" name="ObjectLayer" offsetx="9" offsety="-111">
+ <objectgroup id="9" name="ObjectLayer">
   <object id="12" gid="402" x="503" y="600" width="32" height="32"/>
-  <object id="13" gid="378" x="50" y="165" width="32" height="32"/>
-  <object id="14" gid="378" x="181" y="93" width="32" height="32"/>
-  <object id="15" gid="378" x="280" y="217" width="32" height="32"/>
-  <object id="16" gid="378" x="281" y="97" width="32" height="32"/>
-  <object id="17" gid="378" x="162" y="39" width="32" height="32"/>
+  <object id="18" gid="503" x="289" y="227" width="32" height="32"/>
+  <object id="19" gid="503" x="331" y="163" width="32" height="32"/>
+  <object id="20" gid="503" x="415" y="127" width="32" height="32"/>
+  <object id="21" gid="503" x="392" y="301" width="32" height="32"/>
  </objectgroup>
 </map>
