@@ -1,5 +1,6 @@
 import TileMapLevel from "./tileMapLoader.js"
 import TitleScreen from "./TitleScreen.js"
+import PhaserMatterCollisionPlugin from "../lib/phaser-matter-collision-plugin.js";
 import Phaser from "../lib/phaser.js"
 import SceneOne from "./SceneOne.js"
 import EndScene from "./endScene.js"
@@ -12,22 +13,33 @@ let SCALE_MODE = 'SMOOTH' // FIT OR SMOOTH
 
 const config = {
     type: Phaser.AUTO,
-    width: 400,
-    height: 200,
+    width: 600,
+    height: 400,
     parent: "game-container",
-    pixelArt: true,
     backgroundColor: "#1d212d",
     scene: [TitleScreen, SceneOne, TileMapLevel, EndScene],
     physics: {
-      default: "arcade",
-      arcade: {
-        gravity: { y: 1000 }
+      default: "matter",
+      matter: {
+        gravity: { y: 1 } // This is the default value, so we could omit this
       }
+    },
+    render: {
+      antialias: false,
     },
     scale: {
       // we do scale the game manually in resize()
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH
+    },
+    plugins: {
+      scene: [
+        {
+          plugin: PhaserMatterCollisionPlugin, // The plugin class
+          key: "matterCollision", // Where to store in Scene.Systems, e.g. scene.sys.matterCollision
+          mapping: "matterCollision" // Where to store in the Scene, e.g. scene.matterCollision
+        }
+      ]
     },
   };
 
