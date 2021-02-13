@@ -1,12 +1,13 @@
 import Player from "./player_controller.js";
 import PhysicsObject from "./physics_object.js";
 import OutlinePipeline from "./outline.js";
+import Door from "./door.js";
 
 export default class TileMapLevel extends Phaser.Scene {
   constructor(tilesetPath="../Resources/Subway_tiles_big.png", 
               tilesetName="Spaceship_Tileset_big",
               tilemapPath="../Resources/Spaceship_big_test.json",
-              sceneName="Test Scene")
+              sceneName="Main Scene")
   {
     super(sceneName);
     this.tilesetPath = tilesetPath;
@@ -42,6 +43,7 @@ export default class TileMapLevel extends Phaser.Scene {
 
     this.background = map.createDynamicLayer('Background', tileset);
     this.foreground = map.createDynamicLayer('Foreground', tileset);
+    this.decoration = map.createDynamicLayer('Decoration', tileset);
     this.background.setDepth(-1);
     this.foreground.setDepth(0);
     this.objectLayer = map.getObjectLayer('ObjectLayer')['objects'];
@@ -79,9 +81,6 @@ export default class TileMapLevel extends Phaser.Scene {
           this.physicsObjects.push(box);
           this.matter.world.add(box);
           break;
-        case "text":
-          // let newText = new whatever(this, object.x, object.y props["text"]) // you can add and use other props too
-          //this.textObjects.add(newText); //make group called textObjects and add collision with the player then on collision for the first time show the text.
         default:
           break;
       }
@@ -102,6 +101,25 @@ export default class TileMapLevel extends Phaser.Scene {
       });
     }
 
+    const rect = map.findObject("Sensors", obj => obj.name === "Door");
+    const doorSensor = this.matter.add.rectangle(
+      rect.x + rect.width / 2,
+      rect.y + rect.height / 2,
+      rect.width,
+      rect.height,
+      {
+        isSensor: true, // It shouldn't physically interact with other bodies
+        isStatic: true // It shouldn't move
+      }
+    );
+    this.unsubscribeDoor = this.matterCollision.addOnCollideStart({
+      objectA: this.player.sprite,
+      objectB: doorSensor,
+      callback: this.onPlayerWin,
+      context: this
+    });
+
+
     //this.matter.world.createDebugGraphic();
 
     // this.physics.world.bounds.width = this.background.width;
@@ -114,6 +132,15 @@ export default class TileMapLevel extends Phaser.Scene {
     // this.physics.add.collider(this.player, this.physicsObjects);
   }
 
+  onPlayerWin() {
+    // Celebrate only once
+    this.unsubscribeDoor();
+
+    console.log("switching");
+    this.game.scene.switch("Main Scene",
+      "End Scene");
+  }
+
   update(time, delta)
   {
 
@@ -121,6 +148,8 @@ export default class TileMapLevel extends Phaser.Scene {
     this.player.updateInteract(this.physicsObjects);
   }
 }
+
+
 
 var CustomPipeline = new Phaser.Class({
   Extends: Phaser.Renderer.WebGL.Pipelines.TextureTintPipeline,

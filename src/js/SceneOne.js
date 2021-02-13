@@ -130,7 +130,7 @@ export default class SceneOne extends Phaser.Scene{
         this.cameras.main.fadeOut(4000);
         var exgame = this.game;
         this.cameras.main.once('camerafadeoutcomplete', function(camera) {
-            exgame.scene.start("Test Scene");
+            exgame.scene.start("Main Scene");
         });
     }
 }

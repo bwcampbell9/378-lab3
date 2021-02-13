@@ -86,12 +86,13 @@ export default class Player {
         });
     
         this.sprite.setMass(.05);
+        this.sprite.setFlipX(true);
 
         this.closeObj = null;
 
         this.acceleration = .0004;
         this.maxRunVelocity = 3;
-        this.maxWalkVelocity = .5;
+        this.maxWalkVelocity = .3;
         this.maxVelocity = this.maxRunVelocity;
         this.jumpHeight = 5.5;
         this.playerReach = 75;
