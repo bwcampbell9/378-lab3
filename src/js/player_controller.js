@@ -32,13 +32,15 @@ export default class Player {
         .setPosition(x, y)
         .setCollisionCategory(1);
 
-        const { LEFT, RIGHT, SPACE, SHIFT, UP, A, D, W, E, F } = Phaser.Input.Keyboard.KeyCodes;
+        const { LEFT, RIGHT, SPACE, SHIFT, UP, A, D, W, E, F, O, P } = Phaser.Input.Keyboard.KeyCodes;
         this.leftInput = new MultiKey(scene, [LEFT, A]);
         this.rightInput = new MultiKey(scene, [RIGHT, D]);
         this.jumpInput = new MultiKey(scene, [UP, W, SPACE]);
         this.pickup = new MultiKey(scene, [E]);
         this.interact = new MultiKey(scene, [F]);
         this.walk = new MultiKey(scene, [SHIFT]);
+        this.reset = new MultiKey(scene, [O]);
+        this.endGame = new MultiKey(scene, [P]);
 
         scene.anims.create({
             key: 'walk',
@@ -117,6 +119,12 @@ export default class Player {
             this.maxVelocity = this.maxRunVelocity;
         }
 
+        if (this.reset.justDown()) {
+            this.scene.scene.restart();
+        }
+        if (this.endGame.justDown()) {
+            this.scene.game.scene.switch("Main Scene", "End Scene");
+        }
         let anim = "idle";
         if (isLeftKeyDown) {
             if(!isWalkKeyDown) sprite.setFlipX(false);
